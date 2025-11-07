@@ -1,278 +1,450 @@
 /**
- * Inisiasi halaman saat event DOM selesai dimuat (atau DOMContentLoaded)
+ * Vue.js Application for Stok Bahan Ajar Management
+ * Menggunakan Vue 2.x untuk mengelola data stok bahan ajar
  */
+
+// Inisialisasi Vue setelah DOM selesai dimuat
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('=== Stok Page Initialization ===');
+    console.log('Checking if isLoggedIn function exists:', typeof isLoggedIn);
+    console.log('Checking sessionStorage currentUser:', sessionStorage.getItem('currentUser'));
+
     // Periksa apakah pengguna sudah login
+    if (typeof isLoggedIn === 'undefined') {
+        console.error('isLoggedIn function not found! Make sure index.js is loaded.');
+        alert('Error: Authentication functions not loaded. Please refresh the page.');
+        return;
+    }
+
     if (!isLoggedIn()) {
+        console.warn('User not logged in, redirecting to index.html');
         window.location.href = 'index.html';
         return;
     }
 
-    // Muat informasi pengguna di navbar
-    const user = getCurrentUser();
-    if (user) {
-        document.getElementById('userName').textContent = user.nama;
-    }
-
-    loadStockData();
+    console.log('User is logged in, initializing Vue app...');
+    // Inisialisasi Vue App
+    initializeVueApp();
 });
 
 /**
- * Memuat dan menampilkan data stok bahan ajar ke dalam tabel
- * Mengiterasi semua data bahan ajar dan membuat baris tabel
+ * Fungsi untuk menginisialisasi Vue Application
  */
-function loadStockData() {
-    const tableBody = document.getElementById('stockTableBody');
-    tableBody.innerHTML = '';
+function initializeVueApp() {
+    new Vue({
+        el: '#app',
+        data: {
+            // Data dari dataBahanAjar.js
+            upbjjList: [],
+            kategoriList: [],
+            stok: [],
 
-    dataBahanAjar.forEach((item, index) => {
-        const row = createStockRow(item, index + 1);
-        tableBody.appendChild(row);
+            // User information
+            userName: 'User',
+
+            // Filter properties (two-way data binding dengan v-model)
+            searchQuery: '',
+            filterKategori: '',
+            filterUpbjj: '',
+
+            // Form data untuk tambah/edit
+            formData: {
+                kode: '',
+                judul: '',
+                kategori: '',
+                upbjj: '',
+                lokasiRak: '',
+                harga: 0,
+                qty: 0,
+                safety: 0,
+                catatanHTML: ''
+            },
+
+            // Modal state
+            editMode: false,
+            editIndex: -1,
+
+            // Bootstrap modal instance
+            modalInstance: null
+        },
+
+        // Computed properties untuk filtering dan validasi
+        computed: {
+            /**
+             * Filter stok berdasarkan search query, kategori, dan upbjj
+             * Menggunakan computed property untuk optimasi performa
+             */
+            filteredStok() {
+                let result = this.stok;
+
+                // Filter berdasarkan search query (kode atau judul)
+                if (this.searchQuery) {
+                    const query = this.searchQuery.toLowerCase();
+                    result = result.filter(item =>
+                        item.kode.toLowerCase().includes(query) ||
+                        item.judul.toLowerCase().includes(query)
+                    );
+                }
+
+                // Filter berdasarkan kategori
+                if (this.filterKategori) {
+                    result = result.filter(item => item.kategori === this.filterKategori);
+                }
+
+                // Filter berdasarkan UPBJJ
+                if (this.filterUpbjj) {
+                    result = result.filter(item => item.upbjj === this.filterUpbjj);
+                }
+
+                return result;
+            },
+
+            /**
+             * Warning message ketika stok di bawah safety stock
+             */
+            stockWarning() {
+                if (this.formData.qty > 0 && this.formData.safety > 0) {
+                    if (this.formData.qty < this.formData.safety) {
+                        return `Peringatan: Stok (${this.formData.qty}) di bawah safety stock (${this.formData.safety})!`;
+                    }
+                }
+                return '';
+            }
+        },
+
+        // Watchers untuk monitoring perubahan data
+        watch: {
+            /**
+             * Watcher untuk searchQuery
+             * Memberikan feedback saat user melakukan pencarian
+             */
+            searchQuery(newValue, oldValue) {
+                if (newValue !== oldValue) {
+                    console.log(`Pencarian diubah dari "${oldValue}" ke "${newValue}"`);
+                    console.log(`Hasil pencarian: ${this.filteredStok.length} item`);
+                }
+            },
+
+            /**
+             * Watcher untuk filterKategori
+             * Monitoring perubahan filter kategori
+             */
+            filterKategori(newValue, oldValue) {
+                if (newValue !== oldValue) {
+                    console.log(`Filter kategori diubah: ${newValue || 'Semua'}`);
+                }
+            },
+
+            /**
+             * Watcher untuk filterUpbjj
+             * Monitoring perubahan filter UPBJJ
+             */
+            filterUpbjj(newValue, oldValue) {
+                if (newValue !== oldValue) {
+                    console.log(`Filter UPBJJ diubah: ${newValue || 'Semua'}`);
+                }
+            },
+
+            /**
+             * Deep watcher untuk formData
+             * Monitoring semua perubahan dalam form
+             */
+            formData: {
+                handler(newValue) {
+                    // Validasi stok vs safety stock
+                    if (newValue.qty < newValue.safety && newValue.qty > 0) {
+                        console.warn('Stok di bawah safety stock!');
+                    }
+                },
+                deep: true
+            }
+        },
+
+        // Methods untuk berbagai operasi
+        methods: {
+            /**
+             * Mendapatkan class CSS untuk warna stok
+             * @param {number} qty - Jumlah stok
+             * @returns {string} CSS class
+             */
+            getStockClass(qty) {
+                if (qty === 0) {
+                    return 'text-danger';
+                } else if (qty <= 10) {
+                    return 'text-warning';
+                } else {
+                    return 'text-success';
+                }
+            },
+
+            /**
+             * Mendapatkan status text berdasarkan stok dan safety stock
+             * @param {Object} item - Item stok
+             * @returns {string} Status text
+             */
+            getStatusText(item) {
+                if (item.qty === 0) {
+                    return 'Habis';
+                } else if (item.qty < item.safety) {
+                    return 'Stok Rendah';
+                } else {
+                    return 'Tersedia';
+                }
+            },
+
+            /**
+             * Mendapatkan class badge untuk status
+             * @param {Object} item - Item stok
+             * @returns {string} Badge class
+             */
+            getStatusBadgeClass(item) {
+                if (item.qty === 0) {
+                    return 'bg-danger';
+                } else if (item.qty < item.safety) {
+                    return 'bg-warning text-dark';
+                } else {
+                    return 'bg-success';
+                }
+            },
+
+            /**
+             * Reset semua filter
+             */
+            resetFilters() {
+                this.searchQuery = '';
+                this.filterKategori = '';
+                this.filterUpbjj = '';
+                this.showAlert('Filter telah direset', 'info');
+            },
+
+            /**
+             * Menampilkan modal untuk tambah stok baru
+             */
+            showAddStockModal() {
+                this.editMode = false;
+                this.editIndex = -1;
+                this.resetFormData();
+                this.openModal();
+            },
+
+            /**
+             * Menampilkan modal untuk edit stok
+             * @param {number} index - Index di filteredStok
+             */
+            editStock(index) {
+                this.editMode = true;
+
+                // Cari index asli di array stok
+                const item = this.filteredStok[index];
+                this.editIndex = this.stok.findIndex(s => s.kode === item.kode);
+
+                // Populate form dengan data yang ada
+                this.formData = { ...item };
+
+                this.openModal();
+            },
+
+            /**
+             * Menyimpan data stok (tambah atau edit)
+             */
+            saveStock() {
+                // Validasi form
+                if (!this.validateForm()) {
+                    return;
+                }
+
+                if (this.editMode) {
+                    // Update stok yang ada
+                    this.$set(this.stok, this.editIndex, { ...this.formData });
+                    this.showAlert('Stok bahan ajar berhasil diupdate!', 'success');
+                } else {
+                    // Cek duplikasi kode
+                    const exists = this.stok.some(item => item.kode === this.formData.kode);
+                    if (exists) {
+                        this.showAlert('Kode mata kuliah sudah ada dalam sistem!', 'warning');
+                        return;
+                    }
+
+                    // Tambah stok baru
+                    this.stok.push({ ...this.formData });
+                    this.showAlert('Stok bahan ajar berhasil ditambahkan!', 'success');
+                }
+
+                this.closeModal();
+            },
+
+            /**
+             * Validasi form sebelum submit
+             * @returns {boolean} True jika valid
+             */
+            validateForm() {
+                if (!this.formData.kode || !this.formData.judul) {
+                    this.showAlert('Kode dan Nama Mata Kuliah harus diisi!', 'warning');
+                    return false;
+                }
+
+                if (!this.formData.kategori || !this.formData.upbjj) {
+                    this.showAlert('Kategori dan UT-Daerah harus dipilih!', 'warning');
+                    return false;
+                }
+
+                if (!this.formData.lokasiRak) {
+                    this.showAlert('Lokasi Rak harus diisi!', 'warning');
+                    return false;
+                }
+
+                if (this.formData.qty < 0 || this.formData.safety < 0) {
+                    this.showAlert('Jumlah stok dan safety stock tidak boleh negatif!', 'warning');
+                    return false;
+                }
+
+                return true;
+            },
+
+            /**
+             * Reset form data ke nilai default
+             */
+            resetFormData() {
+                this.formData = {
+                    kode: '',
+                    judul: '',
+                    kategori: '',
+                    upbjj: '',
+                    lokasiRak: '',
+                    harga: 0,
+                    qty: 0,
+                    safety: 0,
+                    catatanHTML: ''
+                };
+            },
+
+            /**
+             * Membuka modal menggunakan Bootstrap
+             */
+            openModal() {
+                const modalEl = document.getElementById('addStockModal');
+                if (!this.modalInstance) {
+                    this.modalInstance = new bootstrap.Modal(modalEl);
+                }
+                this.modalInstance.show();
+            },
+
+            /**
+             * Menutup modal
+             */
+            closeModal() {
+                if (this.modalInstance) {
+                    this.modalInstance.hide();
+                }
+                this.resetFormData();
+            },
+
+            /**
+             * Menampilkan alert message
+             * @param {string} message - Pesan yang akan ditampilkan
+             * @param {string} type - Tipe alert (success, warning, danger, info)
+             */
+            showAlert(message, type) {
+                // Implementasi sederhana dengan alert browser
+                // Bisa diganti dengan toast notification yang lebih bagus
+                alert(message);
+                console.log(`[${type.toUpperCase()}] ${message}`);
+            },
+
+            /**
+             * Logout function
+             */
+            logout() {
+                sessionStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            },
+
+            /**
+             * Load data dari dataBahanAjar.js
+             */
+            loadDataFromSource() {
+                console.log('Loading data from dataBahanAjar.js...');
+                console.log('Type of dataBahanAjarSource:', typeof dataBahanAjarSource);
+
+                // Ambil data dari global variable yang didefinisikan di dataBahanAjar.js
+                if (typeof dataBahanAjarSource !== 'undefined') {
+                    console.log('Data source found, loading...');
+                    this.upbjjList = dataBahanAjarSource.upbjjList || [];
+                    this.kategoriList = dataBahanAjarSource.kategoriList || [];
+                    this.stok = dataBahanAjarSource.stok || [];
+                    console.log('Data loaded successfully:', {
+                        upbjj: this.upbjjList.length,
+                        kategori: this.kategoriList.length,
+                        stok: this.stok.length
+                    });
+                } else {
+                    console.warn('Data dari dataBahanAjar.js tidak ditemukan, menggunakan data default');
+                    // Fallback data jika dataBahanAjar.js tidak tersedia
+                    this.upbjjList = ["Jakarta", "Surabaya", "Makassar", "Padang", "Denpasar"];
+                    this.kategoriList = ["MK Wajib", "MK Pilihan", "Praktikum", "Problem-Based"];
+                    this.stok = [
+                        {
+                            kode: "EKMA4116",
+                            judul: "Pengantar Manajemen",
+                            kategori: "MK Wajib",
+                            upbjj: "Jakarta",
+                            lokasiRak: "R1-A3",
+                            harga: 65000,
+                            qty: 28,
+                            safety: 20,
+                            catatanHTML: "<em>Edisi 2024, cetak ulang</em>"
+                        },
+                        {
+                            kode: "EKMA4115",
+                            judul: "Pengantar Akuntansi",
+                            kategori: "MK Wajib",
+                            upbjj: "Jakarta",
+                            lokasiRak: "R1-A4",
+                            harga: 60000,
+                            qty: 7,
+                            safety: 15,
+                            catatanHTML: "<strong>Cover baru</strong>"
+                        },
+                        {
+                            kode: "BIOL4201",
+                            judul: "Biologi Umum (Praktikum)",
+                            kategori: "Praktikum",
+                            upbjj: "Surabaya",
+                            lokasiRak: "R3-B2",
+                            harga: 80000,
+                            qty: 12,
+                            safety: 10,
+                            catatanHTML: "Butuh <u>pendingin</u> untuk kit basah"
+                        },
+                        {
+                            kode: "FISIP4001",
+                            judul: "Dasar-Dasar Sosiologi",
+                            kategori: "MK Pilihan",
+                            upbjj: "Makassar",
+                            lokasiRak: "R2-C1",
+                            harga: 55000,
+                            qty: 2,
+                            safety: 8,
+                            catatanHTML: "Stok <i>menipis</i>, prioritaskan reorder"
+                        }
+                    ];
+                }
+            }
+        },
+
+        // Lifecycle hooks
+        mounted() {
+            // Load data saat component di-mount
+            this.loadDataFromSource();
+
+            // Load user information
+            const user = getCurrentUser();
+            if (user) {
+                this.userName = user.nama;
+            }
+
+            console.log('Vue App initialized successfully');
+            console.log(`Total stok: ${this.stok.length} item`);
+        }
     });
 }
-
-/**
- * Membuat baris tabel untuk satu item stok bahan ajar
- * @param {Object} stockData - Data stok bahan ajar
- * @param {number} number - Nomor urut dalam tabel
- * @returns {HTMLTableRowElement} Elemen baris tabel
- */
-function createStockRow(stockData, number) {
-    const row = document.createElement('tr');
-
-    // Tentukan status stok
-    const stockStatus = getStockStatus(stockData.stok);
-
-    // Periksa apakah harus menampilkan gambar cover atau "-"
-    const showCoverImage = stockData.cover &&
-        stockData.cover !== "img/default_cover.svg" &&
-        stockData.cover.trim() !== "";
-
-    const coverColumn = showCoverImage
-        ? `<img src="${stockData.cover}" alt="${stockData.namaBarang}" 
-             class="book-cover" 
-             onerror="this.src='img/default_cover.svg';">`
-        : `<div class="cover-placeholder">-</div>`;
-
-    row.innerHTML = `
-        <td>${number}</td>
-        <td class="text-center">
-            ${coverColumn}
-        </td>
-        <td><span class="badge bg-info">${stockData.kodeLokasi}</span></td>
-        <td><span class="badge bg-secondary">${stockData.kodeBarang}</span></td>
-        <td>${stockData.namaBarang}</td>
-        <td>${stockData.jenisBarang}</td>
-        <td class="text-center">${stockData.edisi}</td>
-        <td class="text-center">
-            <span class="fw-bold ${getStockClass(stockData.stok)}">${stockData.stok}</span>
-        </td>
-        <td>
-            <span class="badge ${stockStatus.class}">${stockStatus.text}</span>
-        </td>
-        <td>
-            <button class="btn btn-sm btn-outline-primary me-1" onclick="editStock(${number - 1})" title="Edit">
-                <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteStock(${number - 1})" title="Hapus">
-                <i class="bi bi-trash"></i>
-            </button>
-        </td>
-    `;
-
-    return row;
-}
-
-/**
- * Mendapatkan status stok berdasarkan jumlah
- * @param {number} stok - Jumlah stok
- * @returns {Object} Objek berisi teks dan kelas CSS untuk status
- */
-function getStockStatus(stok) {
-    if (stok === 0) {
-        return { text: 'Habis', class: 'bg-danger' };
-    } else if (stok <= 50) {
-        return { text: 'Stok Rendah', class: 'bg-warning' };
-    } else if (stok <= 200) {
-        return { text: 'Tersedia', class: 'bg-success' };
-    } else {
-        return { text: 'Stok Tinggi', class: 'bg-primary' };
-    }
-}
-
-/**
- * Mendapatkan kelas CSS untuk warna teks berdasarkan jumlah stok
- * @param {number} stok - Jumlah stok
- * @returns {string} Kelas CSS Bootstrap untuk warna teks
- */
-function getStockClass(stok) {
-    if (stok === 0) {
-        return 'text-danger';
-    } else if (stok <= 50) {
-        return 'text-warning';
-    } else {
-        return 'text-success';
-    }
-}
-
-/**
- * Menampilkan modal untuk menambah stok baru
- */
-function showAddStockModal() {
-    const modal = new bootstrap.Modal(document.getElementById('addStockModal'));
-    document.getElementById('addStockForm').reset();
-    modal.show();
-}
-
-/**
- * Menambahkan stok bahan ajar baru ke dalam sistem
- * Validasi form dan menambahkan data ke array dataBahanAjar
- */
-function addNewStock() {
-    const form = document.getElementById('addStockForm');
-
-    // Validasi form
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-
-    // Ambil data dari form
-    const newStock = {
-        kodeLokasi: document.getElementById('kodeLokasi').value.trim(),
-        kodeBarang: document.getElementById('kodeBarang').value.trim(),
-        namaBarang: document.getElementById('namaBarang').value.trim(),
-        jenisBarang: document.getElementById('jenisBarang').value,
-        edisi: document.getElementById('edisi').value,
-        stok: parseInt(document.getElementById('stok').value)
-        // Tidak ada properti cover - akan menampilkan placeholder "-"
-    };
-
-    // Periksa apakah kode barang sudah ada
-    const existingItem = dataBahanAjar.find(item => item.kodeBarang === newStock.kodeBarang);
-    if (existingItem) {
-        showAlert('Kode barang sudah ada dalam sistem!', 'warning');
-        return;
-    }
-
-    // Tambahkan ke array data
-    dataBahanAjar.push(newStock);
-
-    // Muat ulang tabel
-    loadStockData();
-
-    // Tutup modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addStockModal'));
-    modal.hide();
-
-    // Tampilkan pesan sukses
-    showAlert('Stok bahan ajar berhasil ditambahkan!', 'success');
-}
-
-/**
- * Menampilkan modal edit stok dengan data yang sudah ada
- * @param {number} index - Index item dalam array dataBahanAjar
- */
-function editStock(index) {
-    const stockData = dataBahanAjar[index];
-
-    // Isi form dengan data yang ada
-    document.getElementById('kodeLokasi').value = stockData.kodeLokasi;
-    document.getElementById('kodeBarang').value = stockData.kodeBarang;
-    document.getElementById('namaBarang').value = stockData.namaBarang;
-    document.getElementById('jenisBarang').value = stockData.jenisBarang;
-    document.getElementById('edisi').value = stockData.edisi;
-    document.getElementById('stok').value = stockData.stok;
-
-    // Tampilkan modal
-    const modal = new bootstrap.Modal(document.getElementById('addStockModal'));
-    document.getElementById('addStockModalLabel').innerHTML = '<i class="bi bi-pencil me-2"></i>Edit Stok Bahan Ajar';
-
-    // Ubah fungsi tombol sementara
-    const addButton = document.querySelector('#addStockModal .btn-primary');
-    addButton.innerHTML = '<i class="bi bi-check-circle me-2"></i>Update Stok';
-    addButton.onclick = function () { updateStock(index); };
-
-    modal.show();
-}
-
-/**
- * Memperbarui data stok bahan ajar yang sudah ada
- * @param {number} index - Index item dalam array dataBahanAjar
- */
-function updateStock(index) {
-    const form = document.getElementById('addStockForm');
-
-    // Validasi form
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-
-    // Ambil data dari form
-    const updatedStock = {
-        kodeLokasi: document.getElementById('kodeLokasi').value.trim(),
-        kodeBarang: document.getElementById('kodeBarang').value.trim(),
-        namaBarang: document.getElementById('namaBarang').value.trim(),
-        jenisBarang: document.getElementById('jenisBarang').value,
-        edisi: document.getElementById('edisi').value,
-        stok: parseInt(document.getElementById('stok').value),
-        cover: dataBahanAjar[index].cover // Pertahankan cover yang ada
-    };
-
-    // Periksa apakah kode barang konflik dengan item lain
-    const existingItem = dataBahanAjar.find((item, i) => i !== index && item.kodeBarang === updatedStock.kodeBarang);
-    if (existingItem) {
-        showAlert('Kode barang sudah ada dalam sistem!', 'warning');
-        return;
-    }
-
-    // Perbarui data
-    dataBahanAjar[index] = updatedStock;
-
-    // Muat ulang tabel
-    loadStockData();
-
-    // Tutup modal dan reset
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addStockModal'));
-    modal.hide();
-    resetModalToAdd();
-
-    // Tampilkan pesan sukses
-    showAlert('Stok bahan ajar berhasil diupdate!', 'success');
-}
-
-/**
- * Menghapus stok bahan ajar dari sistem setelah konfirmasi
- * @param {number} index - Index item dalam array dataBahanAjar yang akan dihapus
- */
-function deleteStock(index) {
-    const stockData = dataBahanAjar[index];
-
-    if (confirm(`Apakah Anda yakin ingin menghapus stok "${stockData.namaBarang}"?`)) {
-        // Hapus dari array
-        dataBahanAjar.splice(index, 1);
-
-        // Muat ulang tabel
-        loadStockData();
-
-        // Tampilkan pesan sukses
-        showAlert('Stok bahan ajar berhasil dihapus!', 'success');
-    }
-}
-
-/**
- * Mereset modal ke mode tambah stok baru
- * Mengubah label modal dan button handler ke fungsi addNewStock
- */
-function resetModalToAdd() {
-    document.getElementById('addStockModalLabel').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Tambah Stok Bahan Ajar Baru';
-    const addButton = document.querySelector('#addStockModal .btn-primary');
-    addButton.innerHTML = '<i class="bi bi-check-circle me-2"></i>Tambah Stok';
-    addButton.onclick = addNewStock;
-}
-
-// Reset modal ketika modal ditutup
-document.getElementById('addStockModal').addEventListener('hidden.bs.modal', function () {
-    resetModalToAdd();
-});

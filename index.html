@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="save-password" content="never">
+    <title>Login - SITTA (Sistem Informasi Tiras dan Transaksi Bahan Ajar)</title>
+
+    <!-- CSS Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Ikon Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- CSS Kustom -->
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body class="login-page">
+    <div class="container-fluid">
+        <div class="login-container mx-auto">
+            <div class="row g-0 h-100">
+                <!-- Sisi Kiri - Branding -->
+                <div class="col-md-5 login-left">
+                    <div>
+                        <!-- Logo Universitas Terbuka -->
+                        <div class="ut-logo-container text-center mb-4">
+                            <img src="img/ut.svg.png" alt="Logo Universitas Terbuka" class="ut-logo">
+                        </div>
+
+                        <div class="logo">
+                            <i class="bi bi-mortarboard-fill me-2"></i>SITTA
+                        </div>
+                        <div class="subtitle">
+                            Sistem Informasi Tiras dan<br>
+                            Transaksi Bahan Ajar<br><br>
+                            <strong>Universitas Terbuka</strong><br>
+                            Pemesanan Bahan Ajar Online
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sisi Kanan - Form Login -->
+                <div class="col-md-7 login-right">
+                    <div>
+                        <h2 class="text-center mb-4 fw-bold login-welcome">Selamat Datang</h2>
+                        <p class="text-center text-muted mb-4">Silakan masuk ke akun Anda</p>
+
+                        <form id="loginForm" autocomplete="off">
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-semibold">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-envelope"></i>
+                                    </span>
+                                    <input type="email" class="form-control" id="email"
+                                        placeholder="Masukkan email Anda" required autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-semibold">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="password"
+                                        placeholder="Masukkan password Anda" required autocomplete="new-password">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-login w-100 mb-3">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            </button>
+                        </form>
+
+                        <div class="text-center">
+                            <a href="#" class="btn-link me-3" data-bs-toggle="modal"
+                                data-bs-target="#forgotPasswordModal">
+                                <i class="bi bi-question-circle me-1"></i>Lupa Password?
+                            </a>
+                            <a href="#" class="btn-link" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                <i class="bi bi-person-plus me-1"></i>Daftar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Lupa Password -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="forgotPasswordModalLabel">
+                        <i class="bi bi-key me-2"></i>Lupa Password
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-4">Masukkan email Anda untuk mendapatkan link reset password.</p>
+                    <form id="forgotPasswordForm">
+                        <div class="mb-3">
+                            <label for="forgotEmail" class="form-label fw-semibold">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="forgotEmail"
+                                    placeholder="Masukkan email Anda" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-login" onclick="handleForgotPassword()">
+                        <i class="bi bi-send me-2"></i>Kirim Link Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Daftar -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">
+                        <i class="bi bi-person-plus me-2"></i>Daftar Akun Baru
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-4">Lengkapi data berikut untuk membuat akun baru.</p>
+                    <form id="registerForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="regNama" class="form-label fw-semibold">Nama Lengkap</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-person"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="regNama"
+                                            placeholder="Masukkan nama lengkap" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="regEmail" class="form-label fw-semibold">Email</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-envelope"></i>
+                                        </span>
+                                        <input type="email" class="form-control" id="regEmail"
+                                            placeholder="Masukkan email" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="regPassword" class="form-label fw-semibold">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-lock"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="regPassword"
+                                            placeholder="Masukkan password" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="regPasswordConfirm" class="form-label fw-semibold">Konfirmasi
+                                        Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-lock-fill"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="regPasswordConfirm"
+                                            placeholder="Konfirmasi password" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-login" onclick="handleRegister()">
+                        <i class="bi bi-person-plus me-2"></i>Daftar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JS Data -->
+    <script src="js/data.js"></script>
+    <!-- JS Index -->
+    <script src="js/index.js"></script>
+</body>
+
+</html>

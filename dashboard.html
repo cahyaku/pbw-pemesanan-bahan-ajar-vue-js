@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SITTA</title>
+
+    <!-- CSS Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Ikon Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- CSS Kustom -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="dashboard-page">
+    <!-- Navigasi -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-mortarboard-fill me-2"></i>SITTA Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <span id="userName">User</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                    class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Kartu Selamat Datang dengan Salam Berdasarkan Waktu -->
+            <div class="col-12 mb-4">
+                <div class="card welcome-card">
+                    <div class="card-body text-center py-5">
+                        <h1 class="card-title mb-3">
+                            <i class="bi bi-emoji-smile me-2"></i>
+                            <span id="timeGreeting">Selamat Datang</span> di SITTA!
+                        </h1>
+                        <p class="card-text fs-5" id="welcomeMessage">
+                            Sistem Informasi Tracking Tanggung Administrasi - Universitas Terbuka
+                        </p>
+                        <div class="mt-3">
+                            <small class="opacity-75" id="currentDateTime"></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Menu Navigasi Utama -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-gradient text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>Dashboard Menu
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <!-- Informasi Bahan Ajar -->
+                            <div class="col-md-6 col-lg-3">
+                                <div class="menu-card" onclick="navigateTo('info-bahan-ajar')">
+                                    <div class="menu-icon">
+                                        <i class="bi bi-book-fill"></i>
+                                    </div>
+                                    <h6 class="menu-title">Informasi Bahan Ajar</h6>
+                                    <p class="menu-description">Kelola dan lihat informasi bahan ajar</p>
+                                </div>
+                            </div>
+
+                            <!-- Tracking Pengiriman -->
+                            <div class="col-md-6 col-lg-3">
+                                <div class="menu-card" onclick="navigateTo('tracking')">
+                                    <div class="menu-icon">
+                                        <i class="bi bi-truck"></i>
+                                    </div>
+                                    <h6 class="menu-title">Tracking Pengiriman</h6>
+                                    <p class="menu-description">Lacak status pengiriman bahan ajar</p>
+                                </div>
+                            </div>
+
+                            <!-- Laporan -->
+                            <div class="col-md-6 col-lg-3">
+                                <div class="menu-card" onclick="toggleReportSubmenu()">
+                                    <div class="menu-icon">
+                                        <i class="bi bi-file-earmark-bar-graph"></i>
+                                    </div>
+                                    <h6 class="menu-title">Laporan</h6>
+                                    <p class="menu-description">Monitoring dan rekap laporan</p>
+                                    <div class="submenu-indicator">
+                                        <i class="bi bi-chevron-down" id="reportChevron"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Histori Transaksi -->
+                            <div class="col-md-6 col-lg-3">
+                                <div class="menu-card" onclick="navigateTo('histori')">
+                                    <div class="menu-icon">
+                                        <i class="bi bi-clock-history"></i>
+                                    </div>
+                                    <h6 class="menu-title">Histori Transaksi</h6>
+                                    <p class="menu-description">Riwayat transaksi bahan ajar</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submenu Laporan -->
+                        <div id="reportSubmenu" class="submenu-container mt-3" style="display: none;">
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="submenu-item" onclick="navigateTo('monitoring-progress')">
+                                        <i class="bi bi-graph-up me-2"></i>
+                                        <span>Monitoring Progress DO Bahan Ajar</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="submenu-item" onclick="navigateTo('rekap-bahan-ajar')">
+                                        <i class="bi bi-table me-2"></i>
+                                        <span>Rekap Bahan Ajar</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JS Data -->
+    <script src="js/data.js"></script>
+    <!-- JS Index -->
+    <script src="js/index.js"></script>
+    <!-- JS Dashboard -->
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

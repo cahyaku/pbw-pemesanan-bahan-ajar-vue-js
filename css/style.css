@@ -520,6 +520,35 @@ body.tracking-page {
     animation: successPulse 1s ease-in-out infinite alternate;
 }
 
+.warning-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.warning-modal {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    min-width: 400px;
+    animation: warningBounce 0.5s ease-out;
+    border-left: 5px solid #ffc107;
+}
+
+.warning-icon {
+    font-size: 4rem;
+    color: #ffc107;
+    animation: warningPulse 1s ease-in-out infinite alternate;
+}
+
 /* ========== SUCCESS ALERT ANIMATIONS ========== */
 @keyframes successBounce {
     0% {
@@ -536,6 +565,29 @@ body.tracking-page {
 }
 
 @keyframes successPulse {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes warningBounce {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes warningPulse {
     0% {
         transform: scale(1);
     }

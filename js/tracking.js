@@ -80,6 +80,13 @@ function initializeVueApp() {
                 show: false,
                 title: '',
                 message: ''
+            },
+
+            // Alert peringatan untuk ditampilkan di tengah layar
+            warningAlert: {
+                show: false,
+                title: '',
+                message: ''
             }
         },
 
@@ -170,7 +177,7 @@ function initializeVueApp() {
                     // Tidak perlu alert untuk pencarian berhasil, langsung tampilkan hasil
                 } else {
                     this.displayNoResults();
-                    this.showAlert('info', 'Tidak Ditemukan!', `Nomor DO ${doNumber} tidak ditemukan dalam sistem.`);
+                    this.showWarningAlert('Data Tidak Ditemukan!', `Nomor DO ${doNumber} tidak ditemukan dalam sistem. Silakan periksa kembali nomor DO yang Anda masukkan.`);
                 }
             },
 
@@ -549,6 +556,17 @@ function initializeVueApp() {
 
             hideSuccessAlert() {
                 this.successAlert.show = false;
+            },
+
+            /**
+             * Tampilkan/sembunyikan alert peringatan (untuk peringatan di tengah layar)
+             */
+            showWarningAlert(title, message) {
+                this.warningAlert = { show: true, title, message };
+            },
+
+            hideWarningAlert() {
+                this.warningAlert.show = false;
             },
 
             /**

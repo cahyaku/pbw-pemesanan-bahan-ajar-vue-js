@@ -215,7 +215,6 @@ function initializeVueApp() {
                 this.filterKategori = '';
                 this.filterUpbjj = '';
                 this.sortBy = '';
-                this.showAlert('info', 'Reset Filter', 'Filter dan sorting telah direset');
             },
 
             /**

@@ -52,7 +52,33 @@ function initializeVueApp() {
             editIndex: -1,
 
             // Bootstrap modal instance
-            modalInstance: null
+            modalInstance: null,
+
+            // Alert system
+            alert: {
+                show: false,
+                type: '',
+                title: '',
+                message: '',
+                icon: '',
+                timeout: null
+            },
+
+            // Form alert untuk error/warning di dalam modal
+            formAlert: {
+                show: false,
+                type: '',
+                title: '',
+                message: '',
+                icon: ''
+            },
+
+            // Success alert untuk ditampilkan di tengah layar
+            successAlert: {
+                show: false,
+                title: '',
+                message: ''
+            }
         },
 
         // Computed properties untuk filtering dan validasi
@@ -229,7 +255,7 @@ function initializeVueApp() {
                 this.filterKategori = '';
                 this.filterUpbjj = '';
                 this.sortBy = '';
-                this.showAlert('Filter dan sorting telah direset', 'info');
+                this.showAlert('info', 'Reset Filter', 'Filter dan sorting telah direset');
             },
 
             /**
@@ -263,32 +289,45 @@ function initializeVueApp() {
              * Menyimpan data stok (tambah atau edit)
              */
             saveStock() {
-                // Validasi form
-                if (!this.validateForm()) {
-                    return;
-                }
-
-                if (this.editMode) {
-                    // Update stok yang ada
-                    this.$set(this.stok, this.editIndex, { ...this.formData });
-                    this.showAlert('Stok bahan ajar berhasil diupdate!', 'success');
-                } else {
-                    // Cek duplikasi kode
-                    const exists = this.stok.some(item => item.kode === this.formData.kode);
-                    if (exists) {
-                        this.showAlert('Kode mata kuliah sudah ada dalam sistem!', 'warning');
+                try {
+                    // Validasi form
+                    if (!this.validateForm()) {
                         return;
                     }
 
-                    // Tambah stok baru
-                    // Karena this.stok merujuk ke dataBahanAjarSource.stok,
-                    // push ke this.stok otomatis update dataBahanAjarSource juga
-                    this.stok.push({ ...this.formData });
+                    if (this.editMode) {
+                        // Update stok yang ada
+                        this.$set(this.stok, this.editIndex, { ...this.formData });
+                        
+                        // Tutup modal terlebih dahulu
+                        this.closeModal();
+                        
+                        // Tampilkan success alert di tengah layar
+                        this.showSuccessAlert('Berhasil!', `Stok bahan ajar ${this.formData.kode} berhasil diupdate.`);
+                    } else {
+                        // Cek duplikasi kode
+                        const exists = this.stok.some(item => item.kode === this.formData.kode);
+                        if (exists) {
+                            this.showFormAlert('warning', 'Kode Sudah Ada!', 'Kode mata kuliah sudah ada dalam sistem!');
+                            return;
+                        }
 
-                    this.showAlert('Stok bahan ajar berhasil ditambahkan!', 'success');
+                        // Tambah stok baru
+                        // Karena this.stok merujuk ke dataBahanAjarSource.stok,
+                        // push ke this.stok otomatis update dataBahanAjarSource juga
+                        this.stok.push({ ...this.formData });
+
+                        // Tutup modal terlebih dahulu
+                        this.closeModal();
+                        
+                        // Tampilkan success alert di tengah layar
+                        this.showSuccessAlert('Berhasil!', `Stok bahan ajar ${this.formData.kode} berhasil ditambahkan ke sistem.`);
+                    }
+
+                } catch (error) {
+                    console.error('Error saving stock:', error);
+                    this.showFormAlert('danger', 'Gagal Menyimpan!', 'Terjadi kesalahan saat menyimpan data stok. Silakan coba lagi.');
                 }
-
-                this.closeModal();
             },
 
             /**
@@ -296,23 +335,37 @@ function initializeVueApp() {
              * @returns {boolean} True jika valid
              */
             validateForm() {
+                // Hide form alert sebelum validasi
+                this.hideFormAlert();
+
                 if (!this.formData.kode || !this.formData.judul) {
-                    this.showAlert('Kode dan Nama Mata Kuliah harus diisi!', 'warning');
+                    this.showFormAlert('warning', 'Data Tidak Lengkap!', 'Kode dan Nama Mata Kuliah harus diisi!');
                     return false;
                 }
 
                 if (!this.formData.kategori || !this.formData.upbjj) {
-                    this.showAlert('Kategori dan UT-Daerah harus dipilih!', 'warning');
+                    this.showFormAlert('warning', 'Data Tidak Lengkap!', 'Kategori dan UT-Daerah harus dipilih!');
                     return false;
                 }
 
                 if (!this.formData.lokasiRak) {
-                    this.showAlert('Lokasi Rak harus diisi!', 'warning');
+                    this.showFormAlert('warning', 'Data Tidak Lengkap!', 'Lokasi Rak harus diisi!');
                     return false;
                 }
 
                 if (this.formData.qty < 0 || this.formData.safety < 0) {
-                    this.showAlert('Jumlah stok dan safety stock tidak boleh negatif!', 'warning');
+                    this.showFormAlert('warning', 'Nilai Tidak Valid!', 'Jumlah stok dan safety stock tidak boleh negatif!');
+                    return false;
+                }
+
+                if (this.formData.harga <= 0) {
+                    this.showFormAlert('warning', 'Harga Tidak Valid!', 'Harga harus lebih dari 0!');
+                    return false;
+                }
+
+                // Validasi format kode mata kuliah (contoh: EKMA4116)
+                if (!/^[A-Z]{4}\d{4}$/.test(this.formData.kode)) {
+                    this.showFormAlert('warning', 'Format Salah!', 'Format kode mata kuliah harus: 4 huruf + 4 angka (contoh: EKMA4116)!');
                     return false;
                 }
 
@@ -354,16 +407,103 @@ function initializeVueApp() {
                 if (this.modalInstance) {
                     this.modalInstance.hide();
                 }
+                this.hideFormAlert(); // Hide form alert ketika modal ditutup
                 this.resetFormData();
             },
 
             /**
-             * Menampilkan alert message
-             * @param {string} message - Pesan yang akan ditampilkan
-             * @param {string} type - Tipe alert (success, warning, danger, info)
+             * Show alert message
              */
-            showAlert(message, type) {
-                alert(message);
+            showAlert(type, title, message, duration = 5000) {
+                // Clear existing timeout
+                if (this.alert.timeout) {
+                    clearTimeout(this.alert.timeout);
+                }
+
+                // Set alert data
+                this.alert.show = true;
+                this.alert.type = `alert-${type}`;
+                this.alert.title = title;
+                this.alert.message = message;
+
+                // Set icon based on type
+                switch (type) {
+                    case 'success':
+                        this.alert.icon = 'bi bi-check-circle-fill';
+                        break;
+                    case 'danger':
+                        this.alert.icon = 'bi bi-exclamation-triangle-fill';
+                        break;
+                    case 'warning':
+                        this.alert.icon = 'bi bi-exclamation-triangle-fill';
+                        break;
+                    case 'info':
+                        this.alert.icon = 'bi bi-info-circle-fill';
+                        break;
+                    default:
+                        this.alert.icon = 'bi bi-info-circle-fill';
+                }
+
+                // Auto hide after duration
+                this.alert.timeout = setTimeout(() => {
+                    this.hideAlert();
+                }, duration);
+            },
+
+            /**
+             * Hide alert message
+             */
+            hideAlert() {
+                this.alert.show = false;
+                if (this.alert.timeout) {
+                    clearTimeout(this.alert.timeout);
+                    this.alert.timeout = null;
+                }
+            },
+
+            /**
+             * Show form alert (untuk error/warning di dalam modal)
+             */
+            showFormAlert(type, title, message) {
+                this.formAlert.show = true;
+                this.formAlert.type = `alert-${type}`;
+                this.formAlert.title = title;
+                this.formAlert.message = message;
+
+                // Set icon based on type
+                switch (type) {
+                    case 'danger':
+                        this.formAlert.icon = 'bi bi-exclamation-triangle-fill';
+                        break;
+                    case 'warning':
+                        this.formAlert.icon = 'bi bi-exclamation-triangle-fill';
+                        break;
+                    default:
+                        this.formAlert.icon = 'bi bi-info-circle-fill';
+                }
+            },
+
+            /**
+             * Hide form alert
+             */
+            hideFormAlert() {
+                this.formAlert.show = false;
+            },
+
+            /**
+             * Show success alert (untuk success di tengah layar)
+             */
+            showSuccessAlert(title, message) {
+                this.successAlert.show = true;
+                this.successAlert.title = title;
+                this.successAlert.message = message;
+            },
+
+            /**
+             * Hide success alert
+             */
+            hideSuccessAlert() {
+                this.successAlert.show = false;
             },
 
             /**

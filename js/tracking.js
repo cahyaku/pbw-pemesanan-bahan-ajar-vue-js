@@ -54,7 +54,33 @@ function initializeVueApp() {
             selectedPaket: null,
 
             // Bootstrap modal instance
-            modalInstance: null
+            modalInstance: null,
+
+            // Alert system
+            alert: {
+                show: false,
+                type: '',
+                title: '',
+                message: '',
+                icon: '',
+                timeout: null
+            },
+
+            // Form alert untuk error/warning di dalam modal
+            formAlert: {
+                show: false,
+                type: '',
+                title: '',
+                message: '',
+                icon: ''
+            },
+
+            // Success alert untuk ditampilkan di tengah layar
+            successAlert: {
+                show: false,
+                title: '',
+                message: ''
+            }
         },
 
         // Computed properties
@@ -129,15 +155,23 @@ function initializeVueApp() {
                 const doNumber = this.searchDO.trim();
 
                 if (!doNumber) {
-                    alert('Harap masukkan nomor Delivery Order!');
+                    this.showAlert('warning', 'Input Kosong!', 'Harap masukkan nomor Delivery Order!');
+                    return;
+                }
+
+                // Validasi format nomor DO
+                if (!/^DO\d{4}-\d{4}$/.test(doNumber)) {
+                    this.showAlert('warning', 'Format Salah!', 'Format nomor DO harus: DO2025-0001');
                     return;
                 }
 
                 // Cari dalam data tracking
                 if (this.trackingData[doNumber]) {
                     this.displayTrackingResults(this.trackingData[doNumber]);
+                    // Tidak perlu alert untuk success pencarian, langsung tampilkan hasil
                 } else {
                     this.displayNoResults();
+                    this.showAlert('info', 'Tidak Ditemukan!', `Nomor DO ${doNumber} tidak ditemukan dalam sistem.`);
                 }
             },
 
@@ -319,73 +353,101 @@ function initializeVueApp() {
              * Simpan DO baru
              */
             saveDO() {
-                // Validasi form
-                if (!this.validateForm()) {
-                    return;
+                try {
+                    // Validasi form
+                    if (!this.validateForm()) {
+                        return;
+                    }
+
+                    // Get paket name
+                    const paket = this.paketList.find(p => p.kode === this.formData.paketKode);
+                    const paketName = paket ? `${paket.kode} - ${paket.nama}` : this.formData.paketKode;
+
+                    // Buat object tracking baru
+                    const newTracking = {
+                        nomorDO: this.formData.nomorDO,
+                        nim: this.formData.nim,
+                        nama: this.formData.nama,
+                        status: this.formData.status,
+                        ekspedisi: this.formData.ekspedisi,
+                        tanggalKirim: this.formData.tanggalKirim,
+                        paket: paketName,
+                        total: this.formData.total,
+                        perjalanan: [
+                            {
+                                waktu: new Date().toISOString(),
+                                keterangan: `DO dibuat dengan status: ${this.formData.status}`
+                            }
+                        ]
+                    };
+
+                    // Tambahkan ke trackingData
+                    this.$set(this.trackingData, this.formData.nomorDO, newTracking);
+
+                    // Update dataBahanAjarSource jika ada
+                    if (typeof dataBahanAjarSource !== 'undefined' && dataBahanAjarSource.tracking) {
+                        dataBahanAjarSource.tracking[this.formData.nomorDO] = newTracking;
+                    }
+
+                    // Tutup modal terlebih dahulu
+                    this.closeModal();
+
+                    // Tampilkan success alert di tengah layar
+                    this.showSuccessAlert('Berhasil!', `Delivery Order ${this.formData.nomorDO} berhasil ditambahkan dan siap untuk pengiriman.`);
+
+                    // Auto search untuk menampilkan DO yang baru dibuat (tanpa alert)
+                    this.searchDO = newTracking.nomorDO;
+                    // Langsung tampilkan hasil tanpa alert
+                    if (this.trackingData[newTracking.nomorDO]) {
+                        this.displayTrackingResults(this.trackingData[newTracking.nomorDO]);
+                    }
+
+                } catch (error) {
+                    console.error('Error saving DO:', error);
+                    this.showFormAlert('danger', 'Gagal Menyimpan!', 'Terjadi kesalahan saat menyimpan Delivery Order. Silakan coba lagi.');
                 }
-
-                // Get paket name
-                const paket = this.paketList.find(p => p.kode === this.formData.paketKode);
-                const paketName = paket ? `${paket.kode} - ${paket.nama}` : this.formData.paketKode;
-
-                // Buat object tracking baru
-                const newTracking = {
-                    nomorDO: this.formData.nomorDO,
-                    nim: this.formData.nim,
-                    nama: this.formData.nama,
-                    status: this.formData.status,
-                    ekspedisi: this.formData.ekspedisi,
-                    tanggalKirim: this.formData.tanggalKirim,
-                    paket: paketName,
-                    total: this.formData.total,
-                    perjalanan: [
-                        {
-                            waktu: new Date().toISOString(),
-                            keterangan: `DO dibuat dengan status: ${this.formData.status}`
-                        }
-                    ]
-                };
-
-                // Tambahkan ke trackingData
-                this.$set(this.trackingData, this.formData.nomorDO, newTracking);
-
-                // Update dataBahanAjarSource jika ada
-                if (typeof dataBahanAjarSource !== 'undefined' && dataBahanAjarSource.tracking) {
-                    dataBahanAjarSource.tracking[this.formData.nomorDO] = newTracking;
-                }
-
-                // Tutup modal terlebih dahulu
-                this.closeModal();
-
-                // Tampilkan pop up success
-                alert('✓ Delivery Order berhasil ditambahkan!\n\nNomor DO: ' + this.formData.nomorDO);
-
-                // Auto search untuk menampilkan DO yang baru dibuat
-                this.searchDO = newTracking.nomorDO;
-                this.handleTracking();
             },
 
             /**
              * Validasi form
              */
             validateForm() {
+                // Hide form alert sebelum validasi
+                this.hideFormAlert();
+
                 if (!this.formData.nim || !this.formData.nama) {
-                    alert('NIM dan Nama harus diisi!');
+                    this.showFormAlert('warning', 'Data Tidak Lengkap!', 'NIM dan Nama harus diisi!');
                     return false;
                 }
 
                 if (!this.formData.ekspedisi) {
-                    alert('Ekspedisi harus dipilih!');
+                    this.showFormAlert('warning', 'Data Tidak Lengkap!', 'Ekspedisi harus dipilih!');
                     return false;
                 }
 
                 if (!this.formData.paketKode) {
-                    alert('Paket Bahan Ajar harus dipilih!');
+                    this.showFormAlert('warning', 'Data Tidak Lengkap!', 'Paket Bahan Ajar harus dipilih!');
                     return false;
                 }
 
                 if (!this.formData.tanggalKirim) {
-                    alert('Tanggal Kirim harus diisi!');
+                    this.showFormAlert('warning', 'Data Tidak Lengkap!', 'Tanggal Kirim harus diisi!');
+                    return false;
+                }
+
+                // Validasi format NIM (contoh: harus angka dan minimal 8 digit)
+                if (!/^\d{8,}$/.test(this.formData.nim)) {
+                    this.showFormAlert('warning', 'Format Salah!', 'NIM harus berupa angka minimal 8 digit!');
+                    return false;
+                }
+
+                // Validasi tanggal tidak boleh masa lalu
+                const selectedDate = new Date(this.formData.tanggalKirim);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate < today) {
+                    this.showFormAlert('warning', 'Tanggal Tidak Valid!', 'Tanggal kirim tidak boleh di masa lalu!');
                     return false;
                 }
 
@@ -427,6 +489,7 @@ function initializeVueApp() {
                 if (this.modalInstance) {
                     this.modalInstance.hide();
                 }
+                this.hideFormAlert(); // Hide form alert ketika modal ditutup
                 this.resetFormData();
             },
 
@@ -436,6 +499,101 @@ function initializeVueApp() {
             logout() {
                 sessionStorage.removeItem('currentUser');
                 window.location.href = 'index.html';
+            },
+
+            /**
+             * Show alert message
+             */
+            showAlert(type, title, message, duration = 5000) {
+                // Clear existing timeout
+                if (this.alert.timeout) {
+                    clearTimeout(this.alert.timeout);
+                }
+
+                // Set alert data
+                this.alert.show = true;
+                this.alert.type = `alert-${type}`;
+                this.alert.title = title;
+                this.alert.message = message;
+
+                // Set icon based on type
+                switch (type) {
+                    case 'success':
+                        this.alert.icon = 'bi bi-check-circle-fill';
+                        break;
+                    case 'danger':
+                        this.alert.icon = 'bi bi-exclamation-triangle-fill';
+                        break;
+                    case 'warning':
+                        this.alert.icon = 'bi bi-exclamation-triangle-fill';
+                        break;
+                    case 'info':
+                        this.alert.icon = 'bi bi-info-circle-fill';
+                        break;
+                    default:
+                        this.alert.icon = 'bi bi-info-circle-fill';
+                }
+
+                // Auto hide after duration
+                this.alert.timeout = setTimeout(() => {
+                    this.hideAlert();
+                }, duration);
+            },
+
+            /**
+             * Hide alert message
+             */
+            hideAlert() {
+                this.alert.show = false;
+                if (this.alert.timeout) {
+                    clearTimeout(this.alert.timeout);
+                    this.alert.timeout = null;
+                }
+            },
+
+            /**
+             * Show form alert (untuk error/warning di dalam modal)
+             */
+            showFormAlert(type, title, message) {
+                this.formAlert.show = true;
+                this.formAlert.type = `alert-${type}`;
+                this.formAlert.title = title;
+                this.formAlert.message = message;
+
+                // Set icon based on type
+                switch (type) {
+                    case 'danger':
+                        this.formAlert.icon = 'bi bi-exclamation-triangle-fill';
+                        break;
+                    case 'warning':
+                        this.formAlert.icon = 'bi bi-exclamation-triangle-fill';
+                        break;
+                    default:
+                        this.formAlert.icon = 'bi bi-info-circle-fill';
+                }
+            },
+
+            /**
+             * Hide form alert
+             */
+            hideFormAlert() {
+                this.formAlert.show = false;
+            },
+
+            /**
+             * Show success alert (untuk success di tengah layar)
+             */
+            showSuccessAlert(title, message) {
+                this.successAlert.show = true;
+                this.successAlert.title = title;
+                this.successAlert.message = message;
+            },
+
+            /**
+             * Hide success alert
+             */
+            hideSuccessAlert() {
+                this.successAlert.show = false;
             },
 
             /**

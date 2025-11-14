@@ -64,12 +64,13 @@ var dataBahanAjarSource = {
   // Simulasi status DO (opsional fitur Tracking DO)
   tracking: {
     "DO2025-0001": {
+      nomorDO: "DO2025-0001",
       nim: "123456789",
       nama: "Rina Wulandari",
       status: "Dalam Perjalanan",
-      ekspedisi: "JNE",
+      ekspedisi: "JNE Regular",
       tanggalKirim: "2025-08-25",
-      paket: "PAKET-UT-001",
+      paket: "PAKET-UT-001 - PAKET IPS Dasar",
       total: 120000,
       perjalanan: [
         { waktu: "2025-08-25 10:12:20", keterangan: "Penerimaan di Loket: TANGSEL" },

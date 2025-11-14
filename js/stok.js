@@ -5,29 +5,15 @@
 
 // Inisialisasi Vue setelah DOM selesai dimuat
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('=== Stok Page Initialization ===');
-    console.log('Checking if isLoggedIn function exists:', typeof isLoggedIn);
-    console.log('Checking sessionStorage currentUser:', sessionStorage.getItem('currentUser'));
-
     // Periksa apakah pengguna sudah login
-    if (typeof isLoggedIn === 'undefined') {
-        console.error('isLoggedIn function not found! Make sure index.js is loaded.');
-        alert('Error: Authentication functions not loaded. Please refresh the page.');
-        return;
-    }
-
     if (!isLoggedIn()) {
-        console.warn('User not logged in, redirecting to index.html');
         window.location.href = 'index.html';
         return;
     }
 
-    console.log('User is logged in, initializing Vue app...');
     // Inisialisasi Vue App
     initializeVueApp();
-});
-
-/**
+});/**
  * Fungsi untuk menginisialisasi Vue Application
  */
 function initializeVueApp() {
@@ -46,6 +32,7 @@ function initializeVueApp() {
             searchQuery: '',
             filterKategori: '',
             filterUpbjj: '',
+            sortBy: '',
 
             // Form data untuk tambah/edit
             formData: {
@@ -96,6 +83,37 @@ function initializeVueApp() {
                     result = result.filter(item => item.upbjj === this.filterUpbjj);
                 }
 
+                // Sorting berdasarkan pilihan
+                if (this.sortBy) {
+                    const [field, order] = this.sortBy.split('-');
+
+                    result = [...result].sort((a, b) => {
+                        let valueA, valueB;
+
+                        if (field === 'judul') {
+                            valueA = a.judul.toLowerCase();
+                            valueB = b.judul.toLowerCase();
+
+                            if (order === 'asc') {
+                                return valueA.localeCompare(valueB);
+                            } else {
+                                return valueB.localeCompare(valueA);
+                            }
+                        } else if (field === 'qty' || field === 'harga') {
+                            valueA = a[field];
+                            valueB = b[field];
+
+                            if (order === 'asc') {
+                                return valueA - valueB;
+                            } else {
+                                return valueB - valueA;
+                            }
+                        }
+
+                        return 0;
+                    });
+                }
+
                 return result;
             },
 
@@ -119,10 +137,7 @@ function initializeVueApp() {
              * Memberikan feedback saat user melakukan pencarian
              */
             searchQuery(newValue, oldValue) {
-                if (newValue !== oldValue) {
-                    console.log(`Pencarian diubah dari "${oldValue}" ke "${newValue}"`);
-                    console.log(`Hasil pencarian: ${this.filteredStok.length} item`);
-                }
+                // Filter akan otomatis dijalankan oleh computed property
             },
 
             /**
@@ -130,9 +145,7 @@ function initializeVueApp() {
              * Monitoring perubahan filter kategori
              */
             filterKategori(newValue, oldValue) {
-                if (newValue !== oldValue) {
-                    console.log(`Filter kategori diubah: ${newValue || 'Semua'}`);
-                }
+                // Filter akan otomatis dijalankan oleh computed property
             },
 
             /**
@@ -140,21 +153,22 @@ function initializeVueApp() {
              * Monitoring perubahan filter UPBJJ
              */
             filterUpbjj(newValue, oldValue) {
-                if (newValue !== oldValue) {
-                    console.log(`Filter UPBJJ diubah: ${newValue || 'Semua'}`);
-                }
+                // Filter akan otomatis dijalankan oleh computed property
             },
 
             /**
+             * Watcher untuk sortBy
+             * Monitoring perubahan sorting
+             */
+            sortBy(newValue, oldValue) {
+                // Sorting akan otomatis dijalankan oleh computed property
+            },            /**
              * Deep watcher untuk formData
              * Monitoring semua perubahan dalam form
              */
             formData: {
                 handler(newValue) {
-                    // Validasi stok vs safety stock
-                    if (newValue.qty < newValue.safety && newValue.qty > 0) {
-                        console.warn('Stok di bawah safety stock!');
-                    }
+                    // Validasi stok vs safety stock dilakukan di computed property
                 },
                 deep: true
             }
@@ -214,7 +228,8 @@ function initializeVueApp() {
                 this.searchQuery = '';
                 this.filterKategori = '';
                 this.filterUpbjj = '';
-                this.showAlert('Filter telah direset', 'info');
+                this.sortBy = '';
+                this.showAlert('Filter dan sorting telah direset', 'info');
             },
 
             /**
@@ -266,7 +281,10 @@ function initializeVueApp() {
                     }
 
                     // Tambah stok baru
+                    // Karena this.stok merujuk ke dataBahanAjarSource.stok,
+                    // push ke this.stok otomatis update dataBahanAjarSource juga
                     this.stok.push({ ...this.formData });
+
                     this.showAlert('Stok bahan ajar berhasil ditambahkan!', 'success');
                 }
 
@@ -345,10 +363,7 @@ function initializeVueApp() {
              * @param {string} type - Tipe alert (success, warning, danger, info)
              */
             showAlert(message, type) {
-                // Implementasi sederhana dengan alert browser
-                // Bisa diganti dengan toast notification yang lebih bagus
                 alert(message);
-                console.log(`[${type.toUpperCase()}] ${message}`);
             },
 
             /**
@@ -442,9 +457,6 @@ function initializeVueApp() {
             if (user) {
                 this.userName = user.nama;
             }
-
-            console.log('Vue App initialized successfully');
-            console.log(`Total stok: ${this.stok.length} item`);
         }
     });
 }

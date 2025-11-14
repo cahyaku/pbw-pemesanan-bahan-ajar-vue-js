@@ -62,21 +62,32 @@
 
             <!-- Filter Section -->
             <div class="row mb-3">
-                <div class="col-md-4 mb-2">
+                <div class="col-md-3 mb-2">
                     <input type="text" class="form-control" v-model="searchQuery"
                         placeholder="Cari kode atau nama mata kuliah...">
                 </div>
-                <div class="col-md-3 mb-2">
+                <div class="col-md-2 mb-2">
                     <select class="form-select" v-model="filterKategori">
                         <option value="">Semua Kategori</option>
                         <option v-for="kategori in kategoriList" :key="kategori" :value="kategori">{{ kategori }}
                         </option>
                     </select>
                 </div>
-                <div class="col-md-3 mb-2">
+                <div class="col-md-2 mb-2">
                     <select class="form-select" v-model="filterUpbjj">
                         <option value="">Semua UT Daerah</option>
                         <option v-for="upbjj in upbjjList" :key="upbjj" :value="upbjj">{{ upbjj }}</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <select class="form-select" v-model="sortBy">
+                        <option value="">Urutkan Berdasarkan</option>
+                        <option value="judul-asc">Judul (A-Z)</option>
+                        <option value="judul-desc">Judul (Z-A)</option>
+                        <option value="qty-asc">Stok (Terendah)</option>
+                        <option value="qty-desc">Stok (Tertinggi)</option>
+                        <option value="harga-asc">Harga (Termurah)</option>
+                        <option value="harga-desc">Harga (Termahal)</option>
                     </select>
                 </div>
                 <div class="col-md-2 mb-2">
@@ -111,6 +122,7 @@
                                             <th>No</th>
                                             <th>Kode MK</th>
                                             <th>Nama Mata Kuliah</th>
+                                            <th>Harga</th>
                                             <th>Kategori</th>
                                             <th>UT-Daerah</th>
                                             <th>Lokasi Rak</th>
@@ -123,7 +135,7 @@
                                     </thead>
                                     <tbody>
                                         <tr v-if="filteredStok.length === 0">
-                                            <td colspan="11" class="text-center text-muted py-4">
+                                            <td colspan="12" class="text-center text-muted py-4">
                                                 <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                                                 Tidak ada data stok bahan ajar yang ditemukan
                                             </td>
@@ -132,6 +144,7 @@
                                             <td>{{ index + 1 }}</td>
                                             <td><span class="badge bg-secondary">{{ item.kode }}</span></td>
                                             <td>{{ item.judul }}</td>
+                                            <td>Rp {{ item.harga.toLocaleString('id-ID') }}</td>
                                             <td><span class="badge bg-info">{{ item.kategori }}</span></td>
                                             <td>{{ item.upbjj }}</td>
                                             <td><span class="badge bg-dark">{{ item.lokasiRak }}</span></td>

@@ -1,5 +1,5 @@
 /**
- * Vue.js Application for Stok Bahan Ajar Management
+ * Aplikasi Vue.js untuk Manajemen Stok Bahan Ajar
  * Menggunakan Vue 2.x untuk mengelola data stok bahan ajar
  */
 
@@ -13,8 +13,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Inisialisasi Vue App
     initializeVueApp();
-});/**
- * Fungsi untuk menginisialisasi Vue Application
+});
+
+/**
+ * Fungsi untuk menginisialisasi Aplikasi Vue
  */
 function initializeVueApp() {
     new Vue({
@@ -25,16 +27,16 @@ function initializeVueApp() {
             kategoriList: [],
             stok: [],
 
-            // User information
+            // Informasi pengguna
             userName: 'User',
 
-            // Filter properties (two-way data binding dengan v-model)
+            // Properti filter (two-way data binding dengan v-model)
             searchQuery: '',
             filterKategori: '',
             filterUpbjj: '',
             sortBy: '',
 
-            // Form data untuk tambah/edit
+            // Data form untuk tambah/edit
             formData: {
                 kode: '',
                 judul: '',
@@ -47,14 +49,14 @@ function initializeVueApp() {
                 catatanHTML: ''
             },
 
-            // Modal state
+            // Status modal
             editMode: false,
             editIndex: -1,
 
-            // Bootstrap modal instance
+            // Instance modal Bootstrap
             modalInstance: null,
 
-            // Alert system
+            // Sistem alert
             alert: {
                 show: false,
                 type: '',
@@ -64,7 +66,7 @@ function initializeVueApp() {
                 timeout: null
             },
 
-            // Form alert untuk error/warning di dalam modal
+            // Alert form untuk error/warning di dalam modal
             formAlert: {
                 show: false,
                 type: '',
@@ -73,7 +75,7 @@ function initializeVueApp() {
                 icon: ''
             },
 
-            // Success alert untuk ditampilkan di tengah layar
+            // Alert sukses untuk ditampilkan di tengah layar
             successAlert: {
                 show: false,
                 title: '',
@@ -81,16 +83,16 @@ function initializeVueApp() {
             }
         },
 
-        // Computed properties untuk filtering dan validasi
+        // Properti terhitung untuk filtering dan validasi
         computed: {
             /**
-             * Filter stok berdasarkan search query, kategori, dan upbjj
+             * Filter stok berdasarkan kata kunci pencarian, kategori, dan upbjj
              * Menggunakan computed property untuk optimasi performa
              */
             filteredStok() {
                 let result = this.stok;
 
-                // Filter berdasarkan search query (kode atau judul)
+                // Filter berdasarkan kata kunci pencarian (kode atau judul)
                 if (this.searchQuery) {
                     const query = this.searchQuery.toLowerCase();
                     result = result.filter(item =>
@@ -109,7 +111,7 @@ function initializeVueApp() {
                     result = result.filter(item => item.upbjj === this.filterUpbjj);
                 }
 
-                // Sorting berdasarkan pilihan
+                // Pengurutan berdasarkan pilihan
                 if (this.sortBy) {
                     const [field, order] = this.sortBy.split('-');
 
@@ -144,7 +146,7 @@ function initializeVueApp() {
             },
 
             /**
-             * Warning message ketika stok di bawah safety stock
+             * Pesan peringatan ketika stok di bawah safety stock
              */
             stockWarning() {
                 if (this.formData.qty > 0 && this.formData.safety > 0) {
@@ -156,56 +158,14 @@ function initializeVueApp() {
             }
         },
 
-        // Watchers untuk monitoring perubahan data
-        watch: {
-            /**
-             * Watcher untuk searchQuery
-             * Memberikan feedback saat user melakukan pencarian
-             */
-            searchQuery(newValue, oldValue) {
-                // Filter akan otomatis dijalankan oleh computed property
-            },
+        // Pengamat perubahan data (kosong karena computed properties menangani reaktivitas)
 
-            /**
-             * Watcher untuk filterKategori
-             * Monitoring perubahan filter kategori
-             */
-            filterKategori(newValue, oldValue) {
-                // Filter akan otomatis dijalankan oleh computed property
-            },
-
-            /**
-             * Watcher untuk filterUpbjj
-             * Monitoring perubahan filter UPBJJ
-             */
-            filterUpbjj(newValue, oldValue) {
-                // Filter akan otomatis dijalankan oleh computed property
-            },
-
-            /**
-             * Watcher untuk sortBy
-             * Monitoring perubahan sorting
-             */
-            sortBy(newValue, oldValue) {
-                // Sorting akan otomatis dijalankan oleh computed property
-            },            /**
-             * Deep watcher untuk formData
-             * Monitoring semua perubahan dalam form
-             */
-            formData: {
-                handler(newValue) {
-                    // Validasi stok vs safety stock dilakukan di computed property
-                },
-                deep: true
-            }
-        },
-
-        // Methods untuk berbagai operasi
+        // Metode-metode untuk berbagai operasi
         methods: {
             /**
-             * Mendapatkan class CSS untuk warna stok
+             * Mendapatkan kelas CSS untuk warna stok
              * @param {number} qty - Jumlah stok
-             * @returns {string} CSS class
+             * @returns {string} Kelas CSS
              */
             getStockClass(qty) {
                 if (qty === 0) {
@@ -218,9 +178,9 @@ function initializeVueApp() {
             },
 
             /**
-             * Mendapatkan status text berdasarkan stok dan safety stock
+             * Mendapatkan teks status berdasarkan stok dan safety stock
              * @param {Object} item - Item stok
-             * @returns {string} Status text
+             * @returns {string} Teks status
              */
             getStatusText(item) {
                 if (item.qty === 0) {
@@ -233,9 +193,9 @@ function initializeVueApp() {
             },
 
             /**
-             * Mendapatkan class badge untuk status
+             * Mendapatkan kelas badge untuk status
              * @param {Object} item - Item stok
-             * @returns {string} Badge class
+             * @returns {string} Kelas badge
              */
             getStatusBadgeClass(item) {
                 if (item.qty === 0) {
@@ -270,16 +230,16 @@ function initializeVueApp() {
 
             /**
              * Menampilkan modal untuk edit stok
-             * @param {number} index - Index di filteredStok
+             * @param {number} index - Indeks di filteredStok
              */
             editStock(index) {
                 this.editMode = true;
 
-                // Cari index asli di array stok
+                // Cari indeks asli di array stok
                 const item = this.filteredStok[index];
                 this.editIndex = this.stok.findIndex(s => s.kode === item.kode);
 
-                // Populate form dengan data yang ada
+                // Isi form dengan data yang ada
                 this.formData = { ...item };
 
                 this.openModal();
@@ -325,7 +285,6 @@ function initializeVueApp() {
                     }
 
                 } catch (error) {
-                    console.error('Error saving stock:', error);
                     this.showFormAlert('danger', 'Gagal Menyimpan!', 'Terjadi kesalahan saat menyimpan data stok. Silakan coba lagi.');
                 }
             },
@@ -335,7 +294,7 @@ function initializeVueApp() {
              * @returns {boolean} True jika valid
              */
             validateForm() {
-                // Hide form alert sebelum validasi
+                // Sembunyikan form alert sebelum validasi
                 this.hideFormAlert();
 
                 if (!this.formData.kode || !this.formData.judul) {
@@ -373,7 +332,7 @@ function initializeVueApp() {
             },
 
             /**
-             * Reset form data ke nilai default
+             * Reset data form ke nilai default
              */
             resetFormData() {
                 this.formData = {
@@ -407,51 +366,37 @@ function initializeVueApp() {
                 if (this.modalInstance) {
                     this.modalInstance.hide();
                 }
-                this.hideFormAlert(); // Hide form alert ketika modal ditutup
+                this.hideFormAlert(); // Sembunyikan form alert ketika modal ditutup
                 this.resetFormData();
             },
 
             /**
-             * Show alert message
+             * Tampilkan pesan alert dengan konfigurasi ikon otomatis
              */
             showAlert(type, title, message, duration = 5000) {
-                // Clear existing timeout
-                if (this.alert.timeout) {
-                    clearTimeout(this.alert.timeout);
-                }
+                const iconMap = {
+                    success: 'bi bi-check-circle-fill',
+                    danger: 'bi bi-exclamation-triangle-fill',
+                    warning: 'bi bi-exclamation-triangle-fill',
+                    info: 'bi bi-info-circle-fill'
+                };
 
-                // Set alert data
-                this.alert.show = true;
-                this.alert.type = `alert-${type}`;
-                this.alert.title = title;
-                this.alert.message = message;
+                // Hapus timeout yang ada
+                if (this.alert.timeout) clearTimeout(this.alert.timeout);
 
-                // Set icon based on type
-                switch (type) {
-                    case 'success':
-                        this.alert.icon = 'bi bi-check-circle-fill';
-                        break;
-                    case 'danger':
-                        this.alert.icon = 'bi bi-exclamation-triangle-fill';
-                        break;
-                    case 'warning':
-                        this.alert.icon = 'bi bi-exclamation-triangle-fill';
-                        break;
-                    case 'info':
-                        this.alert.icon = 'bi bi-info-circle-fill';
-                        break;
-                    default:
-                        this.alert.icon = 'bi bi-info-circle-fill';
-                }
-
-                // Auto hide after duration
-                this.alert.timeout = setTimeout(() => {
-                    this.hideAlert();
-                }, duration);
+                // Atur data alert
+                this.alert = {
+                    show: true,
+                    type: `alert-${type}`,
+                    title,
+                    message,
+                    icon: iconMap[type] || iconMap.info,
+                    timeout: setTimeout(() => this.hideAlert(), duration)
+                };
             },
 
             /**
-             * Hide alert message
+             * Sembunyikan pesan alert
              */
             hideAlert() {
                 this.alert.show = false;
@@ -462,52 +407,43 @@ function initializeVueApp() {
             },
 
             /**
-             * Show form alert (untuk error/warning di dalam modal)
+             * Tampilkan alert form (untuk error/warning di dalam modal)
              */
             showFormAlert(type, title, message) {
-                this.formAlert.show = true;
-                this.formAlert.type = `alert-${type}`;
-                this.formAlert.title = title;
-                this.formAlert.message = message;
+                const iconMap = {
+                    danger: 'bi bi-exclamation-triangle-fill',
+                    warning: 'bi bi-exclamation-triangle-fill'
+                };
 
-                // Set icon based on type
-                switch (type) {
-                    case 'danger':
-                        this.formAlert.icon = 'bi bi-exclamation-triangle-fill';
-                        break;
-                    case 'warning':
-                        this.formAlert.icon = 'bi bi-exclamation-triangle-fill';
-                        break;
-                    default:
-                        this.formAlert.icon = 'bi bi-info-circle-fill';
-                }
+                this.formAlert = {
+                    show: true,
+                    type: `alert-${type}`,
+                    title,
+                    message,
+                    icon: iconMap[type] || 'bi bi-info-circle-fill'
+                };
             },
 
             /**
-             * Hide form alert
+             * Sembunyikan alert form
              */
             hideFormAlert() {
                 this.formAlert.show = false;
             },
 
             /**
-             * Show success alert (untuk success di tengah layar)
+             * Tampilkan/sembunyikan alert sukses (untuk sukses di tengah layar)
              */
             showSuccessAlert(title, message) {
-                this.successAlert.show = true;
-                this.successAlert.title = title;
-                this.successAlert.message = message;
+                this.successAlert = { show: true, title, message };
             },
 
-            /**
-             * Hide success alert
-             */
             hideSuccessAlert() {
                 this.successAlert.show = false;
             },
 
             /**
-             * Logout function
+             * Fungsi keluar dari sistem
              */
             logout() {
                 sessionStorage.removeItem('currentUser');
@@ -515,84 +451,29 @@ function initializeVueApp() {
             },
 
             /**
-             * Load data dari dataBahanAjar.js
+             * Muat data dari dataBahanAjar.js
              */
             loadDataFromSource() {
-                console.log('Loading data from dataBahanAjar.js...');
-                console.log('Type of dataBahanAjarSource:', typeof dataBahanAjarSource);
-
-                // Ambil data dari global variable yang didefinisikan di dataBahanAjar.js
+                // Ambil data dari variabel global yang didefinisikan di dataBahanAjar.js
                 if (typeof dataBahanAjarSource !== 'undefined') {
-                    console.log('Data source found, loading...');
                     this.upbjjList = dataBahanAjarSource.upbjjList || [];
                     this.kategoriList = dataBahanAjarSource.kategoriList || [];
                     this.stok = dataBahanAjarSource.stok || [];
-                    console.log('Data loaded successfully:', {
-                        upbjj: this.upbjjList.length,
-                        kategori: this.kategoriList.length,
-                        stok: this.stok.length
-                    });
                 } else {
-                    console.warn('Data dari dataBahanAjar.js tidak ditemukan, menggunakan data default');
-                    // Fallback data jika dataBahanAjar.js tidak tersedia
-                    this.upbjjList = ["Jakarta", "Surabaya", "Makassar", "Padang", "Denpasar"];
-                    this.kategoriList = ["MK Wajib", "MK Pilihan", "Praktikum", "Problem-Based"];
-                    this.stok = [
-                        {
-                            kode: "EKMA4116",
-                            judul: "Pengantar Manajemen",
-                            kategori: "MK Wajib",
-                            upbjj: "Jakarta",
-                            lokasiRak: "R1-A3",
-                            harga: 65000,
-                            qty: 28,
-                            safety: 20,
-                            catatanHTML: "<em>Edisi 2024, cetak ulang</em>"
-                        },
-                        {
-                            kode: "EKMA4115",
-                            judul: "Pengantar Akuntansi",
-                            kategori: "MK Wajib",
-                            upbjj: "Jakarta",
-                            lokasiRak: "R1-A4",
-                            harga: 60000,
-                            qty: 7,
-                            safety: 15,
-                            catatanHTML: "<strong>Cover baru</strong>"
-                        },
-                        {
-                            kode: "BIOL4201",
-                            judul: "Biologi Umum (Praktikum)",
-                            kategori: "Praktikum",
-                            upbjj: "Surabaya",
-                            lokasiRak: "R3-B2",
-                            harga: 80000,
-                            qty: 12,
-                            safety: 10,
-                            catatanHTML: "Butuh <u>pendingin</u> untuk kit basah"
-                        },
-                        {
-                            kode: "FISIP4001",
-                            judul: "Dasar-Dasar Sosiologi",
-                            kategori: "MK Pilihan",
-                            upbjj: "Makassar",
-                            lokasiRak: "R2-C1",
-                            harga: 55000,
-                            qty: 2,
-                            safety: 8,
-                            catatanHTML: "Stok <i>menipis</i>, prioritaskan reorder"
-                        }
-                    ];
+                    // Data kosong jika sumber data tidak tersedia
+                    this.upbjjList = [];
+                    this.kategoriList = [];
+                    this.stok = [];
                 }
             }
         },
 
-        // Lifecycle hooks
+        // Siklus hidup komponen
         mounted() {
-            // Load data saat component di-mount
+            // Muat data saat komponen di-mount
             this.loadDataFromSource();
 
-            // Load user information
+            // Muat informasi pengguna
             const user = getCurrentUser();
             if (user) {
                 this.userName = user.nama;

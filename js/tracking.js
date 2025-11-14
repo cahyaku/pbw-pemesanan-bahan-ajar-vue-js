@@ -168,6 +168,39 @@ function initializeVueApp() {
             },
 
             /**
+             * Menutup hasil tracking
+             */
+            closeResults() {
+                this.showResults = false;
+                this.showNoResults = false;
+                this.selectedTracking = null;
+                this.searchDO = ''; // Reset input pencarian
+            },
+
+            /**
+             * Tampilkan detail tracking dari tabel
+             */
+            viewTracking(nomorDO) {
+                // Set searchDO dengan nomor DO yang dipilih
+                this.searchDO = nomorDO;
+                
+                // Cari dan tampilkan data tracking
+                if (this.trackingData[nomorDO]) {
+                    this.displayTrackingResults(this.trackingData[nomorDO]);
+                    
+                    // Scroll ke hasil tracking
+                    this.$nextTick(() => {
+                        const element = document.querySelector('.card');
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+                } else {
+                    this.displayNoResults();
+                }
+            },
+
+            /**
              * Get CSS class untuk status badge
              */
             getStatusBadgeClass(status) {

@@ -97,10 +97,13 @@
             <div v-if="showResults" class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header bg-primary text-white">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
                                 <i class="bi bi-info-circle me-2"></i>Hasil Tracking
                             </h5>
+                            <button type="button" class="btn btn-sm btn-outline-light" @click="closeResults" title="Tutup hasil tracking">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -212,13 +215,14 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th width="5%">No</th>
-                                            <th width="15%">Nomor DO</th>
-                                            <th width="12%">NIM</th>
-                                            <th width="18%">Nama</th>
-                                            <th width="15%">Paket</th>
-                                            <th width="12%">Tanggal Kirim</th>
-                                            <th width="13%">Total</th>
+                                            <th width="13%">Nomor DO</th>
+                                            <th width="10%">NIM</th>
+                                            <th width="16%">Nama</th>
+                                            <th width="14%">Paket</th>
+                                            <th width="11%">Tanggal Kirim</th>
+                                            <th width="11%">Total</th>
                                             <th width="10%">Status</th>
+                                            <th width="10%">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -236,6 +240,13 @@
                                                 <span class="badge" :class="getStatusBadgeClass(tracking.status)">
                                                     {{ tracking.status }}
                                                 </span>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                        @click="viewTracking(tracking.nomorDO)" 
+                                                        title="Lihat detail tracking">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     </tbody>

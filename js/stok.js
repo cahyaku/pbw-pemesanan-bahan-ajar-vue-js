@@ -19,8 +19,12 @@ document.addEventListener('DOMContentLoaded', function () {
  * Fungsi untuk menginisialisasi Aplikasi Vue
  */
 function initializeVueApp() {
+    // 1. formatnya dengan new Vue({ ... })
+    // di dalamnya ada el, data, computed, methods, mounted, dll.
     new Vue({
+        // 2. elemen ini untuk menentukan elemen HTML mana yang akan dikendalikan oleh Vue
         el: '#app',
+        // 3. data berisi semua veriabel yang akan digunakan di dalam aplikasi.
         data: {
             // Data dari dataBahanAjar.js
             upbjjList: [],
@@ -83,7 +87,8 @@ function initializeVueApp() {
             }
         },
 
-        // Properti terhitung untuk filtering dan validasi
+        // 4. computed properties yang berisi perhitungan data berdasarkan data lain.
+        // Pada kasus ini, untuk memfilter stok berdasarkan kriteria pencarian dan melakukan variasi pengurutan.
         computed: {
             /**
              * Filter stok berdasarkan kata kunci pencarian, kategori, dan upbjj
@@ -208,7 +213,7 @@ function initializeVueApp() {
             },
 
             /**
-             * Reset semua filter
+             * RESET semua filter, jadi ini untuk mengosongkan nilai filter
              */
             resetFilters() {
                 this.searchQuery = '';
@@ -245,7 +250,9 @@ function initializeVueApp() {
             },
 
             /**
-             * Menyimpan data stok (tambah atau edit)
+             * Method untuk menyimpan stok (tambah atau edit)
+             * jadi ini yang akan dapapi dipanggil dari event handler 
+             * seperti @click="saveStock" di tombol simpan pada modal.
              */
             saveStock() {
                 try {

@@ -106,6 +106,9 @@
                         placeholder="Cari kode atau nama mata kuliah...">
                 </div>
                 <div class="col-md-2 mb-2">
+                    <!-- v-model untuk menghubungkan nilai input di tampilan (HTML)
+                        dengan data Vue, jadi ini terjadi dua arah (two-way binding).
+                    -->
                     <select class="form-select" v-model="filterKategori">
                         <option value="">Semua Kategori</option>
                         <!-- V-For untuk melooping datanya -->
@@ -160,6 +163,9 @@
                             <div class="table-responsive">
                                 <table class="table table-striped table-hover" id="stockTable">
                                     <thead style="background-color: #e5e5e5;">
+                                        <!-- Table masih sama, hanya menambahkan beberapa kolom baru
+                                            seperti harga, ketegori, dan tombil aksi untuk edit.
+                                            -->
                                         <tr>
                                             <th>No</th>
                                             <th>Kode MK</th>
@@ -218,7 +224,7 @@
             </div>
         </div>
 
-        <!-- Modal Tambah/Edit Stok -->
+        <!-- Modal Tambah/Edit Stok, ini pakai bootstrap agar tampilannya seragam-->
         <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel"
             aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -233,7 +239,7 @@
                     </div>
                     <div class="modal-body">
                         <!-- Alert di dalam form untuk error/warning -->
-                        <!-- v-if untuk membuat kondisi misalnya tampil atau tidak -->
+                        <!-- v-if untuk membuat kondisi misalnya menampilkan atau menyembunyikan elemen -->
                         <div v-if="formAlert.show" class="alert" :class="formAlert.type" role="alert">
                             <div class="d-flex align-items-center">
                                 <i :class="formAlert.icon" class="me-2"></i>
@@ -245,6 +251,12 @@
                             </div>
                         </div>
 
+                        <!-- Form untuk menambah atau mengedit stok bahan ajar
+                            dengan berbagai field seperti kode, judul, kategori, UT Daerah,
+                            lokasi rak, jumlah stok, safety stock, harga, dan catatan. 
+                            Disini pakai v-model untuk two-way data binding antara input form
+                            dengan data di Vue instance.
+                        -->
                         <form @submit.prevent="saveStock">
                             <div class="row">
                                 <div class="col-md-6 mb-3">

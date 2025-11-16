@@ -120,6 +120,9 @@
                             <h5 class="mb-0">
                                 <i class="bi bi-search me-2"></i>Pencarian Tracking
                             </h5>
+                            <!-- BTN tambah Delivery Order Baru 
+                              yang akan memunculkan modal tambah Delivery Order Baru 
+                            -->
                             <button class="btn fw-bold" style="background-color: #FFF9C4; border-color: #FFF9C4; color: #333;"
                                 @click="showAddDOModal">
                                 <i class="bi bi-plus-circle me-2"></i>Tambah Delivery Order Baru
@@ -315,7 +318,9 @@
             </div>
         </div>
 
-        <!-- Modal Tambah DO -->
+        <!-- Modal Tambah DO 
+            berisi form input untuk menambah Delivery Order baru
+        -->
         <div class="modal fade" id="addDOModal" tabindex="-1" aria-labelledby="addDOModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
@@ -342,11 +347,13 @@
                         <form @submit.prevent="saveDO">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
+                                    <!-- Input untuk Nomor DO, bersifat readonly karena tergenerate secara otomatis -->
                                     <label class="form-label">Nomor DO</label>
                                     <input type="text" class="form-control" v-model="formData.nomorDO" readonly>
                                     <small class="text-muted">Tergenerate otomatis</small>
                                 </div>
                                 <div class="col-md-6 mb-3">
+                                    <!-- Input untuk NIM -->
                                     <label class="form-label">NIM</label>
                                     <input type="text" class="form-control" v-model.trim="formData.nim"
                                         placeholder="Masukkan NIM" required>
@@ -354,6 +361,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-12 mb-3">
+                                    <!-- Input untuk Nama Lengkap -->
                                     <label class="form-label">Nama Lengkap</label>
                                     <input type="text" class="form-control" v-model.trim="formData.nama"
                                         placeholder="Masukkan nama lengkap" required>
@@ -361,6 +369,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
+                                    <!-- Input untuk Ekspedisi -->
                                     <label class="form-label">Ekspedisi</label>
                                     <select class="form-select" v-model="formData.ekspedisi" required>
                                         <option value="">Pilih Ekspedisi</option>
@@ -376,6 +385,7 @@
 
                             <div class="row">
                                 <div class="col-md-12 mb-3">
+                                    <!-- Input untuk Paket Bahan Ajar -->
                                     <label class="form-label">Paket Bahan Ajar</label>
                                     <select class="form-select" v-model="formData.paketKode" @change="onPaketChange"
                                         required>

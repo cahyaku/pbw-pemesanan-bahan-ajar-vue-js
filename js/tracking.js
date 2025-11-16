@@ -292,6 +292,7 @@ function initializeVueApp() {
 
             /**
              * Tampilkan modal tambah DO
+             * Ini yang akan menyiapkan form untuk input DO baru.
              */
             showAddDOModal() {
                 this.resetFormData();
@@ -337,10 +338,14 @@ function initializeVueApp() {
 
             /**
              * Simpan DO baru
+             * Jadi setelah data formnya lengkap,
+             * Vue akan menjalankan method ini untuk menyimpan DO baru.
              */
             saveDO() {
                 try {
-                    // Validasi form
+                    // Namun pertama" dilakukan validasi form melalui method validateForm.
+                    // Jika valid, maka proses penyimpanan dilanjutkan dan dibuatan object tracking baru.
+                    // Jika validasi gagal, proses penyimpanan dihentikan.
                     if (!this.validateForm()) {
                         return;
                     }

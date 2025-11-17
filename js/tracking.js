@@ -223,11 +223,11 @@ function initializeVueApp() {
             viewTracking(nomorDO) {
                 // Atur searchDO dengan nomor DO yang dipilih
                 this.searchDO = nomorDO;
-                
+
                 // Cari dan tampilkan data tracking
                 if (this.trackingData[nomorDO]) {
                     this.displayTrackingResults(this.trackingData[nomorDO]);
-                    
+
                     // Gulir ke hasil tracking
                     this.$nextTick(() => {
                         const element = document.querySelector('.card');
@@ -291,7 +291,7 @@ function initializeVueApp() {
             },
 
             /**
-             * Tampilkan modal tambah DO
+             * Pengembangan fitur: Tampilkan modal tambah DO
              * Ini yang akan menyiapkan form untuk input DO baru.
              */
             showAddDOModal() {
@@ -307,7 +307,7 @@ function initializeVueApp() {
              */
             updateSelectedPaket() {
                 const paket = this.paketList.find(p => p.kode === this.formData.paketKode);
-                
+
                 if (paket) {
                     this.selectedPaket = paket;
                     this.formData.total = paket.harga;
@@ -435,7 +435,7 @@ function initializeVueApp() {
                 const selectedDate = new Date(this.formData.tanggalKirim);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                
+
                 if (selectedDate < today) {
                     this.showFormAlert('warning', 'Tanggal Tidak Valid!', 'Tanggal kirim tidak boleh di masa lalu!');
                     return false;
@@ -580,15 +580,15 @@ function initializeVueApp() {
             loadDataFromSource() {
                 if (typeof dataBahanAjarSource !== 'undefined') {
                     // Muat daftar paket
-                    this.paketList = Array.isArray(dataBahanAjarSource.paket) ? 
+                    this.paketList = Array.isArray(dataBahanAjarSource.paket) ?
                         [...dataBahanAjarSource.paket] : [];
 
                     // Muat daftar stok
-                    this.stokList = Array.isArray(dataBahanAjarSource.stok) ? 
+                    this.stokList = Array.isArray(dataBahanAjarSource.stok) ?
                         [...dataBahanAjarSource.stok] : [];
 
                     // Muat data tracking (object, bukan array)
-                    this.trackingData = dataBahanAjarSource.tracking ? 
+                    this.trackingData = dataBahanAjarSource.tracking ?
                         Object.assign({}, dataBahanAjarSource.tracking) : {};
                 } else {
                     this.paketList = [];
